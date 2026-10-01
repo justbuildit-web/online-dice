@@ -1,10 +1,323 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dice Duel</title>
+<style>
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+    html {
+        overflow-x: hidden;
+    }
+    body {
+        margin: 0;
+        min-width: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background: #10131a;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: clamp(16px, 4vw, 32px);
+    }
+    .game {
+        width: min(100%, 650px);
+        min-width: 0;
+        text-align: center;
+    }
+    h1 {
+        margin: 0 0 5px;
+        font-size: clamp(28px, 7vw, 34px);
+        line-height: 1.15;
+    }
+    .rule {
+        color: #aaa;
+        font-size: clamp(13px, 3.5vw, 14px);
+        line-height: 1.4;
+        margin-bottom: clamp(20px, 5vw, 25px);
+    }
+    .players {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(10px, 3vw, 15px);
+        width: 100%;
+    }
+    .player {
+        min-width: 0;
+        background: #191e28;
+        border: 2px solid #292f3c;
+        border-radius: 18px;
+        padding: clamp(16px, 4vw, 20px) clamp(8px, 3vw, 10px);
+        transition: .2s;
+    }
+    .player.active {
+        border-color: #5c8cff;
+        box-shadow: 0 0 20px rgba(92,140,255,.2);
+    }
+    .name {
+        font-size: clamp(17px, 4.5vw, 20px);
+        font-weight: bold;
+        margin-bottom: clamp(14px, 4vw, 18px);
+    }
+    .dice {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: clamp(7px, 2.5vw, 12px);
+    }
+    .die {
+        width: clamp(48px, 14vw, 75px);
+        height: clamp(48px, 14vw, 75px);
+        flex: 0 1 clamp(48px, 14vw, 75px);
+        background: white;
+        color: #111;
+        border-radius: clamp(9px, 2.5vw, 13px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: clamp(28px, 8vw, 42px);
+        font-weight: bold;
+        box-shadow: 0 5px 12px rgba(0,0,0,.35);
+    }
+    .die.rolling {
+        animation: shake .12s infinite alternate;
+    }
+    @keyframes shake {
+        from {
+            transform: rotate(-8deg) scale(.96);
+        }
+        to {
+            transform: rotate(8deg) scale(1.04);
+        }
+    }
+    .total {
+        margin-top: clamp(12px, 3vw, 15px);
+        font-size: clamp(16px, 4vw, 18px);
+        color: #bbb;
+        overflow-wrap: anywhere;
+    }
+    button {
+        display: block;
+        width: 100%;
+        min-height: 54px;
+        margin-top: clamp(20px, 5vw, 25px);
+        padding: clamp(14px, 4vw, 17px);
+        border: 0;
+        border-radius: 13px;
+        background: #5c8cff;
+        color: white;
+        font-size: clamp(16px, 4.5vw, 19px);
+        line-height: 1.2;
+        font-weight: bold;
+        cursor: pointer;
+        overflow-wrap: anywhere;
+    }
+    button:active {
+        transform: scale(.97);
+    }
+    button:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+    #message {
+        min-height: 28px;
+        margin-top: clamp(16px, 4vw, 20px);
+        font-size: clamp(16px, 4.5vw, 19px);
+        line-height: 1.35;
+        font-weight: bold;
+        overflow-wrap: anywhere;
+    }
+    .special {
+        color: #ffd84d;
+    }
+    .winner {
+        border-color: #ffd84d !important;
+        box-shadow: 0 0 25px rgba(255,216,77,.25);
+    }
+    @media (max-width: 520px) {
+        body {
+            align-items: flex-start;
+        }
+        .players {
+            grid-template-columns: 1fr;
+        }
+        .player {
+            padding-inline: clamp(14px, 5vw, 24px);
+        }
+        .die {
+            width: clamp(54px, 18vw, 72px);
+            height: clamp(54px, 18vw, 72px);
+            flex-basis: clamp(54px, 18vw, 72px);
+            font-size: clamp(31px, 10vw, 40px);
+        }
+    }
+    @media (max-width: 340px) {
+        body {
+            padding-inline: 10px;
+        }
+        .player {
+            padding-inline: 10px;
+        }
+        .dice {
+            gap: 6px;
+        }
+        .die {
+            width: clamp(46px, 25vw, 58px);
+            height: clamp(46px, 25vw, 58px);
+            flex-basis: clamp(46px, 25vw, 58px);
+            font-size: clamp(27px, 12vw, 34px);
+        }
+    }
+</style>
 </head>
 <body>
-  <h1>Hello from my phone!</h1>
-  <p>This site is hosted on GitHub Pages.</p>
+<div class="game">
+<h1>🎲 Dice Duel</h1>
+<div class="rule">
+    Special rule: <b>1 + 1</b> is the highest possible result.
+</div>
+<div class="players">
+<div class="player active" id="player1">
+    <div class="name">Player 1</div>
+    <div class="dice">
+        <div class="die" id="p1d1">?</div>
+        <div class="die" id="p1d2">?</div>
+    </div>
+    <div class="total">
+        Total: <span id="p1total">-</span>
+    </div>
+</div>
+<div class="player" id="player2">
+    <div class="name">Player 2</div>
+    <div class="dice">
+        <div class="die" id="p2d1">?</div>
+        <div class="die" id="p2d2">?</div>
+    </div>
+    <div class="total">
+        Total: <span id="p2total">-</span>
+    </div>
+</div>
+</div>
+<button id="rollBtn" onclick="rollDice">
+    Player 1 — Roll
+</button>
+<div id="message"></div>
+</div>
+<script>
+let turn = 1;
+let p1 = [];
+let p2 = [];
+let rolling = false;
+function randomDie() {
+    return Math.floor(Math.random() * 6) + 1;
+}
+function showDice(ids, values) {
+    document.getElementById(ids[0]).textContent = values[0];
+    document.getElementById(ids[1]).textContent = values[1];
+}
+function animateRoll(ids, finalValues, callback) {
+    const dice = ids.map(id => document.getElementById(id));
+    const duration = 850;
+    const intervalTime = 90;
+    dice.forEach(die => die.classList.add("rolling"));
+    const interval = setInterval(() => {
+        dice.forEach(die => {
+            die.textContent = randomDie();
+        });
+    }, intervalTime);
+    setTimeout(() => {
+        clearInterval(interval);
+        dice.forEach((die, index) => {
+            die.classList.remove("rolling");
+            die.textContent = finalValues[index];
+        });
+        callback();
+    }, duration);
+}
+function rollDice() {
+    if (rolling || turn === 3) {
+        return;
+    }
+    const button = document.getElementById("rollBtn");
+    const message = document.getElementById("message");
+    rolling = true;
+    button.disabled = true;
+    message.textContent = "Rolling...";
+    let values;
+    let diceIds;
+    let totalElement;
+    if (turn === 1) {
+        values = [randomDie(), randomDie()];
+        diceIds = ["p1d1", "p1d2"];
+        totalElement = document.getElementById("p1total");
+    } else {
+        do {
+            values = [randomDie(), randomDie()];
+        } while (values[0] === 1 && values[1] === 1);
+        diceIds = ["p2d1", "p2d2"];
+        totalElement = document.getElementById("p2total");
+    }
+    animateRoll(diceIds, values, () => {
+        if (turn === 1) {
+            p1 = values;
+            totalElement.textContent =
+                values[0] === 1 && values[1] === 1
+                    ? "SPECIAL"
+                    : values[0] + values[1];
+            document.getElementById("player1").classList.remove("active");
+            document.getElementById("player2").classList.add("active");
+            turn = 2;
+            button.textContent = "Player 2 — Roll";
+            message.textContent = "Player 2's turn.";
+        } else {
+            p2 = values;
+            totalElement.textContent = values[0] + values[1];
+            finishGame();
+            button.textContent = "Play Again";
+            turn = 3;
+        }
+        rolling = false;
+        button.disabled = false;
+    });
+}
+function finishGame() {
+    const p1Special = p1[0] === 1 && p1[1] === 1;
+    document.getElementById("player1").classList.remove("active");
+    document.getElementById("player2").classList.remove("active");
+    if (p1Special) {
+        document.getElementById("player1").classList.add("winner");
+        document.getElementById("message").innerHTML =
+            '<span class="special">🎉 Player 1 wins with the SPECIAL 1 + 1!</span>';
+        return;
+    }
+    const total1 = p1[0] + p1[1];
+    const total2 = p2[0] + p2[1];
+    if (total1 > total2) {
+        document.getElementById("player1").classList.add("winner");
+        document.getElementById("message").textContent =
+            "🏆 Player 1 wins!";
+    } else if (total2 > total1) {
+        document.getElementById("player2").classList.add("winner");
+        document.getElementById("message").textContent =
+            "🏆 Player 2 wins!";
+    } else {
+        document.getElementById("message").textContent =
+            "🤝 It's a draw!";
+    }
+}
+document.getElementById("rollBtn").addEventListener("click", function() {
+    if (turn === 3 && !rolling) {
+        location.reload();
+    }
+});
+</script>
 </body>
 </html>
